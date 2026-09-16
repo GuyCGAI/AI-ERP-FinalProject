@@ -1,0 +1,63 @@
+{
+  "base": "AI-ERP Claude",
+  "note": "Full data model has 14 tables; the 10 automated workflows only require the 4 below. Add the rest later if needed.",
+  "tables": {
+    "Invoices": {
+      "fields": {
+        "InvoiceNumber": "number",
+        "CustomerId": "singleLineText",
+        "Amount": "number",
+        "VatAmount": "number",
+        "Total": "number",
+        "Status": "singleLineText",
+        "PdfUrl": "url",
+        "Created": "createdTime"
+      },
+      "notes": [
+        "Created must be type 'Created time' - WF1's Airtable Trigger relies on it.",
+        "Status must be plain text, not Single select - agents write values that aren't pre-defined choices.",
+        "CustomerId is a text foreign key (e.g. CUST-0001), not an Airtable link field.",
+        "Status values used across the workflows: 'מוכן להפקה' (ready) -> 'הופק' (produced)."
+      ]
+    },
+    "Leads": {
+      "fields": {
+        "Name": "singleLineText",
+        "Email": "email",
+        "Company": "singleLineText",
+        "Status": "singleLineText",
+        "Created": "createdTime"
+      },
+      "notes": [
+        "Created must be type 'Created time' - WF3's Airtable Trigger relies on it.",
+        "Status values used: New -> Contacted -> Replied."
+      ]
+    },
+    "Products": {
+      "fields": {
+        "Name": "singleLineText",
+        "Category": "singleLineText",
+        "Price": "number",
+        "Description": "singleLineText",
+        "InStock": "singleLineText"
+      }
+    },
+    "Tasks": {
+      "fields": {
+        "Title": "singleLineText",
+        "Status": "singleLineText"
+      },
+      "notes": ["Not written to by any of the 10 workflows yet - reserved for the admin app."]
+    }
+  },
+  "vectorStore": {
+    "engine": "Qdrant Cloud",
+    "embeddingModel": "text-embedding-3-small",
+    "vectorSize": 1536,
+    "distance": "Cosine",
+    "collections": {
+      "policies": "Built by WF6 from mock/policies/*.md",
+      "products": "Built by WF7 from the product catalog"
+    }
+  }
+}

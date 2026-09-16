@@ -1,0 +1,20 @@
+<html dir="rtl" lang="he">
+<head>
+  <meta charset="utf-8">
+  <style>
+    body{font-family:Arial,sans-serif;direction:rtl;padding:24px}
+    table{border-collapse:collapse;width:100%;margin-top:16px}
+    td,th{border:1px solid #ccc;padding:8px;text-align:right}
+    h1{color:#1a1a1a}
+  </style>
+</head>
+<body>
+  <h1>חשבונית מס מספר {{ $json.InvoiceNumber }}</h1>
+  <p>תאריך: {{ $json.Created }}</p>
+  <p>מספר לקוח: {{ $json.CustomerId }}</p>
+  <table>
+    <tr><th>סכום לפני מע"מ</th><th>מע"מ</th><th>סה"כ לתשלום</th></tr>
+    <tr><td>{{ $json.Amount }} ₪</td><td>{{ $json.VatAmount }} ₪</td><td>{{ $json.Total }} ₪</td></tr>
+  </table>
+</body>
+</html>

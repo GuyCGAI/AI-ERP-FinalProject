@@ -64,7 +64,7 @@ See [`docs/04-workflows.md`](docs/04-workflows.md) for the node-by-node flow, cr
 | WF1 | Tax Doc Validation | New Invoice / TaxInvoice / Receipt in Airtable |
 | WF3 | Contact Intake | New Lead in Airtable |
 | WF4a | Sales Cold Emails | Every 3 hours |
-| WF4b | Sales Reply Check | Gmail, every 30 min |
+| WF4b | Sales Reply Check | Gmail, every minute |
 | WF5 | Customer Service | Telegram (customer bot) |
 | WF6 | Policies Embedding | Manual (form upload) |
 | WF7 | Products Embedding | Manual |

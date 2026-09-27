@@ -7,7 +7,7 @@ All workflows live in the **My project** team project on n8n Cloud and use the A
 | WF1 | Tax Doc Validation | 3 Airtable Triggers — new Invoice / TaxInvoice / Receipt | `Validate` (Code) → `Is Valid?` → **true:** `Add To File Queue` (Files, Status=Pending) · **false:** `Mark Invalid` (Status=Invalid + ValidationError) |
 | WF3 | Contact Intake | Airtable Trigger — new Lead | `Normalize` → `Find Same Email` → `Count Matches` → `Duplicate?` → **true:** `Mark Dead` · **false:** `Keep As New` |
 | WF4a | Sales Cold Emails | Every 3 hours | `Search New Leads` (Status=New, 1 per run) → `Write Cold Email` (LLM chain) → `Send Email` (Gmail) → `Mark Contacted` (+ GmailThreadId) |
-| WF4b | Sales Reply Check | Gmail Trigger — unread, every 30 min | `Extract Fields` → `Find Lead By Thread` (GmailThreadId) → `Is A Lead?` → `Draft Reply` (AI Agent) → `Gmail Reply` → `Mark Replied` |
+| WF4b | Sales Reply Check | Gmail Trigger — subject "AI Electronics", every minute | `Extract Fields` → `Find Lead By Thread` (GmailThreadId) → `Is A Lead?` (a lead's thread, and received after our last email to them) → `Draft Reply` (AI Agent) → `Gmail Reply` → `Mark Replied` |
 | WF5 | Customer Service | Telegram (customer bot) | `סוכן שירות` (AI Agent + Simple Memory) with two *Answer questions with a vector store* tools: `search_policies` (key `policies`) and `search_products` (key `products`) → reply in Telegram |
 | WF6 | Policies Embedding | Manual (form upload) | `On form submission` → `Simple Vector Store` (insert, key `policies`) with `Embeddings` + `Load Documents` |
 | WF7 | Products Embedding | Manual | `All Products` (Airtable) → `Build Text` → `Simple Vector Store` (insert, key `products`) with `Embeddings` + `Default Data Loader` + `Text Splitter` (800/100) |

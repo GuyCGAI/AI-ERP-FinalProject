@@ -1,82 +1,84 @@
 # AI-ERP with n8n
 
-A small, learning-oriented ERP system for a fictional Israeli electronics business — built entirely on **n8n Cloud**, **Airtable**, and **Qdrant**, with three AI agents and a RAG-grounded customer service bot. Final project for the AI & Automation course.
+A small, learning-oriented ERP system for a fictional Israeli electronics business (איי.איי אלקטרוניקה) — built entirely on **n8n Cloud** and **Airtable**, with AI agents, RAG over the business policies and product catalog, two Telegram bots, Gmail and Google Drive. Final project for the AI & Automation course.
 
 Everything runs in the cloud. Nothing to install, nothing to run locally, no server to deploy.
 
 ## What's in it
 
-- **3 AI agents** — a manager (analytics, owner-only), a customer service agent (RAG over policies + products), and a sales agent (cold outreach + reply tracking).
-- **10 n8n workflows** (+ 1 webhook gateway for an admin app) covering invoicing, lead intake, sales, RAG ingestion, and document generation.
-- **RAG over Qdrant** — two collections (`policies`, `products`), embedded with OpenAI `text-embedding-3-small`, queried through the AI Agent's native vector-store tool.
-- **Israeli tax rules built in** — 18% VAT from 01/01/2025 (17% before), running invoice numbers, HTML invoice generation.
-- **Airtable as the single database** — 4 tables (of a 14-table full model) are enough to run everything.
+- **4 AI agents** — a manager agent (owner-only Telegram bot with tools for tasks, invoices and documents), a customer service agent (RAG over policies + products), a sales agent (cold outreach + reply handling), and an app gateway agent for the admin app.
+- **10 n8n workflows** covering tax-document validation, lead intake, sales, RAG ingestion, document generation, and the two bots.
+- **RAG on n8n's Simple Vector Store** — two in-memory stores (`policies`, `products`), embedded with OpenAI `text-embedding-3-small`, queried through the AI Agent's *Answer questions with a vector store* tool.
+- **Israeli tax rules built in** — 18% VAT from 01/01/2025 (17% before), a business number required on tax invoices, running document numbers, Hebrew RTL documents.
+- **Airtable as the single database** — 8 tables: Customers, Leads, Products, Invoices, TaxInvoices, Receipts, Tasks, Files.
 
 ## Architecture
 
 ```
-                    ┌─────────────────────────────┐
- Telegram (owner)   │                              │
- Telegram (customer)│                              ├──► Airtable  (data)
- Gmail               ──►        n8n Cloud           │
- Schedule triggers   │   (workflows + AI agents)    ├──► Gmail     (sales emails)
+                     ┌──────────────────────────────┐
+ Telegram (owner)    │                              ├──► Airtable      (all data, 8 tables)
+ Telegram (customer) │                              │
+ Gmail            ──►│          n8n Cloud           ├──► Gmail         (sales emails)
+ Airtable triggers   │   (workflows + AI agents)    │
+ Schedule triggers   │                              ├──► Google Drive  (generated documents)
  Admin app webhook   │                              │
-                    │                              ├──► Google Drive (invoice docs)
-                    └─────────────────────────────┘
-                                   │
-                                   ▼
-                             Qdrant Cloud
-                          (policies / products)
+                     └──────────────┬───────────────┘
+                                    │
+                                    ▼
+                       Simple Vector Store (in n8n)
+                         policies  ·  products
 ```
 
-n8n sits in the middle. Triggers come in from two Telegram bots, Gmail, scheduled timers, and a single webhook the admin app calls. Everything that needs to persist goes to Airtable; documents go to Google Drive; embeddings go to Qdrant.
+A document created anywhere (Airtable, the manager bot, the app) is validated by **WF1**, queued in **Files**, and rendered to Google Drive by **WF8**. A new lead is de-duplicated by **WF3**, emailed by **WF4a**, and its reply is answered by **WF4b**. **WF6/WF7** fill the vector store that **WF5**, **WF9** and **WF13** search.
 
 ## Quick start
 
-1. **Accounts**: n8n Cloud, Airtable, OpenAI, Qdrant Cloud (free tier), two Telegram bots via @BotFather, a Google account for Gmail + Drive.
-2. **Airtable**: build the base and 4 tables — see [`docs/01-airtable.md`](docs/01-airtable.md) and [`schema/schema.json`](schema/schema.json).
-3. **Telegram**: create both bots and note their tokens — see [`docs/02-telegram-bots.md`](docs/02-telegram-bots.md).
+1. **Accounts**: n8n Cloud, Airtable, OpenAI, two Telegram bots via @BotFather, a Google account for Gmail + Drive.
+2. **Airtable**: build the `AI-ERP` base with 8 tables and add the `Created` field by hand — see [`docs/01-airtable.md`](docs/01-airtable.md) and [`schema/schema.json`](schema/schema.json).
+3. **Telegram**: create both bots, one credential each — see [`docs/02-telegram-bots.md`](docs/02-telegram-bots.md).
 4. **Google**: connect Gmail + Drive OAuth2 credentials — see [`docs/03-google-oauth.md`](docs/03-google-oauth.md).
-5. **n8n**: import/build the 10 workflows, re-select the Airtable base/table and credentials in each node — see [`docs/04-workflows.md`](docs/04-workflows.md) for the full list and what each one does.
-6. **Qdrant**: get a cluster URL + API key, add it as an n8n credential, then run WF6 and WF7 once each (manual form upload) to populate the `policies` and `products` collections.
-7. Activate WF1, WF3, WF4a, WF4b, WF5, WF8, WF9, WF13. Try the customer bot ("מה מדיניות ההחזרות?") and the owner bot ("מה ההכנסות?").
+5. **n8n**: build the workflows and pick the credentials in each node — see [`docs/04-workflows.md`](docs/04-workflows.md).
+6. **Fill the vector store**: run WF6 and upload the files in [`mock/policies/`](mock/policies/); load products into Airtable and run WF7.
+7. Activate WF1, WF3, WF4a, WF4b, WF5, WF8, WF9, WF13. Try the customer bot ("מה מדיניות ההחזרות?", "כמה עולה מסך 27 אינץ'?") and the owner bot ("אילו חשבוניות פתוחות?").
 
 ## Repo layout
 
 ```
-├── docs/            setup guides for Airtable, Telegram, Google OAuth, and the workflow map
-├── mock/policies/   the Hebrew policy corpus embedded into Qdrant by WF6
-├── schema/          schema.json - the single source of truth for the 4 Airtable tables
-├── templates/       the HTML invoice template used by WF8
-├── AGENTS.md         notes for anyone (human or AI) editing this repo
-└── README.md         this file
+├── docs/            setup guides: Airtable, Telegram, Google OAuth, and the workflow map
+│   └── screenshots/ one screenshot per n8n workflow
+├── mock/policies/   the Hebrew policy corpus WF6 embeds
+├── schema/          schema.json - the 8 Airtable tables and the vector store keys
+├── templates/       the document template WF8 renders
+├── AGENTS.md        notes for anyone (human or AI) editing this repo
+└── README.md        this file
 ```
 
-## The 10 workflows (summary)
+## The workflows
 
-See [`docs/04-workflows.md`](docs/04-workflows.md) for the full table with triggers and credentials.
+See [`docs/04-workflows.md`](docs/04-workflows.md) for the node-by-node flow, credentials, and a screenshot of every workflow.
+
+![WF9 - Manager Agent](docs/screenshots/wf9-manager-agent.png)
 
 | # | Name | Trigger |
 |---|------|---------|
-| WF1 | אימות חשבוניות ותור הפקה | New Invoice in Airtable |
-| WF3 | קליטת אנשי קשר וסינון כפילויות | Webhook |
-| WF4a | סוכן מכירות — מיילים קרים | Every 3h |
-| WF4b | סוכן מכירות — בדיקת תשובות | Every 30 min |
-| WF5 | סוכן שירות לקוחות | Telegram (customer bot) |
-| WF6 | מדיניות ← מאגר וקטורי | Manual |
-| WF7 | מוצרים ← מאגר וקטורי | Manual |
-| WF8 | הפקת מסמך חשבונית + דרייב | Every 1 min |
-| WF9 | סוכן המנהל | Telegram (owner bot) |
-| WF13 | Webhook לאפליקציה | Webhook |
+| WF1 | Tax Doc Validation | New Invoice / TaxInvoice / Receipt in Airtable |
+| WF3 | Contact Intake | New Lead in Airtable |
+| WF4a | Sales Cold Emails | Every 3 hours |
+| WF4b | Sales Reply Check | Gmail, every 30 min |
+| WF5 | Customer Service | Telegram (customer bot) |
+| WF6 | Policies Embedding | Manual (form upload) |
+| WF7 | Products Embedding | Manual |
+| WF8 | File Pipeline | Every minute |
+| WF9 | Manager Agent | Telegram (owner bot) |
+| WF13 | App Gateway | Webhook |
 
 ## Known limitations (intentional)
 
-- No error handling or retries — a failed execution shows up red in n8n's **Executions** tab, on purpose, so failures are visible instead of silently retried.
-- No PDF conversion — invoices are HTML on Google Drive; converting to PDF is a manual right-click away.
-- Google OAuth stays in Testing mode — refresh tokens expire every 7 days.
-- Running invoice numbers can collide if two invoices are created in the same polling window.
-- The manager agent (WF9) gets no tools and sees at most 100 invoices — by design, to keep it simple and predictable.
-- Vector search runs through n8n's native `Qdrant Vector Store` node (`retrieve-as-tool` mode), but that same node's `insert` mode currently fails against recent Qdrant server versions (upstream n8n bug). WF6/WF7 work around it with a manual OpenAI Embeddings + Qdrant REST API pipeline — see [`docs/04-workflows.md`](docs/04-workflows.md) for details and the tracking issues.
+- **In-memory vector store** — Simple Vector Store is wiped whenever n8n restarts. Re-run WF6 and WF7 afterwards.
+- **No PDF conversion** — the brief rules out an external conversion service, so documents are HTML on Google Drive (open in Google Docs → Download → PDF).
+- **No error handling or retries** — a failed execution shows up red in n8n's **Executions** tab, on purpose.
+- **Google OAuth stays in Testing mode** — refresh tokens expire every 7 days.
+- **Running document numbers can collide** if two documents are created within the same polling window.
 
 ## Credits
 

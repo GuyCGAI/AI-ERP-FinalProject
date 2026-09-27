@@ -1,63 +1,165 @@
 {
-  "base": "AI-ERP Claude",
-  "note": "Full data model has 14 tables; the 10 automated workflows only require the 4 below. Add the rest later if needed.",
-  "tables": {
-    "Invoices": {
-      "fields": {
-        "InvoiceNumber": "number",
-        "CustomerId": "singleLineText",
-        "Amount": "number",
-        "VatAmount": "number",
-        "Total": "number",
-        "Status": "singleLineText",
-        "PdfUrl": "url",
-        "Created": "createdTime"
-      },
-      "notes": [
-        "Created must be type 'Created time' - WF1's Airtable Trigger relies on it.",
-        "Status must be plain text, not Single select - agents write values that aren't pre-defined choices.",
-        "CustomerId is a text foreign key (e.g. CUST-0001), not an Airtable link field.",
-        "Status values used across the workflows: 'מוכן להפקה' (ready) -> 'הופק' (produced)."
+  "base": "AI-ERP",
+  "currencySymbol": "₪",
+  "_notes": [
+    "The 8 Airtable tables the workflows use. Build the base from this file.",
+    "Types: text, longtext, email, phone, url, int, currency, percent, date, datetime, select, created.",
+    "Relationships are plain text foreign keys (e.g. CustomerId = 'CUST-0001'), not Airtable link fields.",
+    "'created' = Airtable 'Created time'. The API can't create it - add a field named Created by hand in every table. The Airtable Triggers depend on it.",
+    "The first field in each table is the primary field.",
+    "percent is stored as a fraction: 0.18 = 18%."
+  ],
+  "tables": [
+    {
+      "name": "Customers",
+      "fields": [
+        { "name": "CustomerId", "type": "text", "primary": true },
+        { "name": "Name", "type": "text" },
+        { "name": "Email", "type": "email" },
+        { "name": "Phone", "type": "phone" },
+        { "name": "Company", "type": "text" },
+        { "name": "BusinessNumber", "type": "text" },
+        { "name": "Address", "type": "text" },
+        { "name": "City", "type": "text" },
+        { "name": "Status", "type": "select", "choices": ["Active", "Inactive"] },
+        { "name": "Notes", "type": "longtext" },
+        { "name": "Created", "type": "created" }
       ]
     },
-    "Leads": {
-      "fields": {
-        "Name": "singleLineText",
-        "Email": "email",
-        "Company": "singleLineText",
-        "Status": "singleLineText",
-        "Created": "createdTime"
-      },
-      "notes": [
-        "Created must be type 'Created time' - WF3's Airtable Trigger relies on it.",
-        "Status values used: New -> Contacted -> Replied."
+    {
+      "name": "Leads",
+      "usedBy": ["WF3 (trigger)", "WF4a", "WF4b", "WF13"],
+      "fields": [
+        { "name": "LeadId", "type": "text", "primary": true },
+        { "name": "Name", "type": "text" },
+        { "name": "Email", "type": "email" },
+        { "name": "Phone", "type": "phone" },
+        { "name": "Company", "type": "text" },
+        { "name": "Source", "type": "select", "choices": ["Website", "Referral", "ColdEmail", "Exhibition", "SocialMedia"] },
+        { "name": "Interest", "type": "text" },
+        { "name": "Status", "type": "select", "choices": ["New", "Contacted", "Replied", "Qualified", "Converted", "Dead"] },
+        { "name": "GmailThreadId", "type": "text", "note": "Written by WF4a when the cold email is sent; WF4b matches replies on it." },
+        { "name": "LastContactedAt", "type": "datetime" },
+        { "name": "Notes", "type": "longtext" },
+        { "name": "Created", "type": "created" }
       ]
     },
-    "Products": {
-      "fields": {
-        "Name": "singleLineText",
-        "Category": "singleLineText",
-        "Price": "number",
-        "Description": "singleLineText",
-        "InStock": "singleLineText"
-      }
+    {
+      "name": "Products",
+      "usedBy": ["WF7"],
+      "fields": [
+        { "name": "ProductId", "type": "text", "primary": true },
+        { "name": "SKU", "type": "text" },
+        { "name": "Name", "type": "text" },
+        { "name": "Category", "type": "select", "choices": ["אוזניות", "רמקולים", "מסכים", "מקלדות", "עכברים", "מצלמות רשת", "מיקרופונים", "עגינה", "כבלים", "מטענים", "אחסון", "רשת", "שירותים"] },
+        { "name": "Brand", "type": "text" },
+        { "name": "Description", "type": "longtext" },
+        { "name": "Price", "type": "currency" },
+        { "name": "Cost", "type": "currency" },
+        { "name": "Stock", "type": "int" },
+        { "name": "SupplierId", "type": "text" },
+        { "name": "Warranty", "type": "text" },
+        { "name": "Status", "type": "select", "choices": ["Active", "Discontinued", "OutOfStock"] },
+        { "name": "Created", "type": "created" }
+      ]
     },
-    "Tasks": {
-      "fields": {
-        "Title": "singleLineText",
-        "Status": "singleLineText"
-      },
-      "notes": ["Not written to by any of the 10 workflows yet - reserved for the admin app."]
+    {
+      "name": "Invoices",
+      "usedBy": ["WF1 (trigger)", "WF8", "WF9"],
+      "fields": [
+        { "name": "InvoiceId", "type": "text", "primary": true },
+        { "name": "DocNumber", "type": "int" },
+        { "name": "CustomerId", "type": "text" },
+        { "name": "CustomerName", "type": "text" },
+        { "name": "IssueDate", "type": "date" },
+        { "name": "DueDate", "type": "date" },
+        { "name": "LineItems", "type": "longtext" },
+        { "name": "Subtotal", "type": "currency" },
+        { "name": "VATRate", "type": "percent" },
+        { "name": "VATAmount", "type": "currency" },
+        { "name": "Total", "type": "currency" },
+        { "name": "Status", "type": "select", "choices": ["Draft", "Issued", "Paid", "Overdue", "Cancelled", "Invalid"] },
+        { "name": "ValidationError", "type": "text" },
+        { "name": "OrderId", "type": "text" },
+        { "name": "Created", "type": "created" }
+      ]
+    },
+    {
+      "name": "TaxInvoices",
+      "usedBy": ["WF1 (trigger)", "WF8", "WF9"],
+      "fields": [
+        { "name": "TaxInvoiceId", "type": "text", "primary": true },
+        { "name": "DocNumber", "type": "int" },
+        { "name": "CustomerId", "type": "text" },
+        { "name": "CustomerName", "type": "text" },
+        { "name": "CustomerBusinessNumber", "type": "text", "note": "Required - WF1 rejects a tax invoice without it." },
+        { "name": "IssueDate", "type": "date" },
+        { "name": "LineItems", "type": "longtext" },
+        { "name": "Subtotal", "type": "currency" },
+        { "name": "VATRate", "type": "percent" },
+        { "name": "VATAmount", "type": "currency" },
+        { "name": "Total", "type": "currency" },
+        { "name": "Status", "type": "select", "choices": ["Draft", "Issued", "Paid", "Cancelled", "Invalid"] },
+        { "name": "ValidationError", "type": "text" },
+        { "name": "Created", "type": "created" }
+      ]
+    },
+    {
+      "name": "Receipts",
+      "usedBy": ["WF1 (trigger)", "WF8", "WF9"],
+      "fields": [
+        { "name": "ReceiptId", "type": "text", "primary": true },
+        { "name": "DocNumber", "type": "int" },
+        { "name": "CustomerId", "type": "text" },
+        { "name": "CustomerName", "type": "text" },
+        { "name": "IssueDate", "type": "date" },
+        { "name": "Amount", "type": "currency" },
+        { "name": "PaymentMethod", "type": "select", "choices": ["Cash", "CreditCard", "BankTransfer", "Check", "Bit"] },
+        { "name": "RelatedInvoice", "type": "text" },
+        { "name": "Status", "type": "select", "choices": ["Issued", "Cancelled", "Invalid"] },
+        { "name": "ValidationError", "type": "text" },
+        { "name": "Created", "type": "created" }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "usedBy": ["WF9"],
+      "fields": [
+        { "name": "TaskId", "type": "text", "primary": true },
+        { "name": "Title", "type": "text" },
+        { "name": "Description", "type": "longtext" },
+        { "name": "ProjectId", "type": "text" },
+        { "name": "AssignedTo", "type": "text" },
+        { "name": "DueDate", "type": "date" },
+        { "name": "Priority", "type": "select", "choices": ["Low", "Medium", "High", "Urgent"] },
+        { "name": "Status", "type": "select", "choices": ["Todo", "InProgress", "Done", "Blocked"] },
+        { "name": "Created", "type": "created" }
+      ]
+    },
+    {
+      "name": "Files",
+      "usedBy": ["WF1 (writes Pending)", "WF8 (reads Pending, writes Done)"],
+      "fields": [
+        { "name": "FileId", "type": "text", "primary": true },
+        { "name": "DocType", "type": "select", "choices": ["Invoice", "TaxInvoice", "Receipt", "PriceQuote", "Report"] },
+        { "name": "SourceRecordId", "type": "text" },
+        { "name": "Status", "type": "select", "choices": ["Pending", "Processing", "Done", "Failed"] },
+        { "name": "DriveLink", "type": "url" },
+        { "name": "DriveFileId", "type": "text" },
+        { "name": "Year", "type": "text" },
+        { "name": "Month", "type": "text" },
+        { "name": "ErrorMessage", "type": "text" },
+        { "name": "Created", "type": "created" }
+      ]
     }
-  },
+  ],
   "vectorStore": {
-    "engine": "Qdrant Cloud",
+    "engine": "n8n Simple Vector Store (in-memory)",
     "embeddingModel": "text-embedding-3-small",
-    "vectorSize": 1536,
-    "distance": "Cosine",
-    "collections": {
+    "keys": {
       "policies": "Built by WF6 from mock/policies/*.md",
-      "products": "Built by WF7 from the product catalog"
-    }
+      "products": "Built by WF7 from the Products table"
+    },
+    "note": "In-memory: wiped whenever n8n restarts. Re-run WF6 and WF7 after a restart."
   }
 }

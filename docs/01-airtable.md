@@ -1,27 +1,26 @@
 # Airtable Setup
 
-Base name: **AI-ERP Claude**.
+Base name: **AI-ERP** — 8 tables: Customers, Leads, Products, Invoices, TaxInvoices, Receipts, Tasks, Files.
 
-## 1. Create the base and 4 tables
+## 1. Create the base
 
-Create the base, then add these 4 tables with the **exact** field names and types from [`schema/schema.json`](../schema/schema.json):
+Create the base and its tables with the exact field names and types from [`schema/schema.json`](../schema/schema.json). The base starts empty — no demo data.
 
-- **Invoices** — InvoiceNumber, CustomerId, Amount, VatAmount, Total, Status, PdfUrl, Created
-- **Leads** — Name, Email, Company, Status, Created
-- **Products** — Name, Category, Price, Description, InStock
-- **Tasks** — Title, Status
+## 2. Add the `Created` field by hand
 
-Two things that cause an hour of debugging if you skip them:
+Airtable's API can't create "Created time" fields, so after the tables exist, add one manually to **each of the 8 tables**:
 
-1. `Created` must be type **Created time** in Invoices and Leads — WF1 and WF3's Airtable Triggers poll on it.
-2. `Status` must be plain **text**, not Single select — the workflows write values (`מוכן להפקה`, `הופק`, `Contacted`, `Replied`...) that wouldn't exist as pre-defined choices.
+- Field name: **`Created`** (exactly)
+- Field type: **Created time**
 
-The base starts empty — no demo data. Foreign keys between tables (e.g. `CustomerId`) are plain text, not Airtable link fields.
+The Airtable Triggers in WF1 (Invoices, TaxInvoices, Receipts) and WF3 (Leads) poll on this field — without it they never fire.
 
-## 2. Get a Personal Access Token
+## 3. Conventions
 
-Airtable → account icon → Developer Hub → Personal access tokens → Create token. Scopes needed: `data.records:read`, `data.records:write`, `schema.bases:read`. Attach it to this base only.
+- Relationships are plain text foreign keys (`CustomerId = CUST-0001`), not Airtable link fields — simpler, and easier to show in the app.
+- `Status` fields are single selects; the workflows write with `typecast` on, so the values in `schema.json` must exist as choices.
+- `VATRate` is a percent field stored as a fraction: `0.18` = 18%. From 01/01/2025 the rate is 18% (17% before) — WF1 rejects a document whose VAT doesn't match its `IssueDate`.
 
-## 3. Wire it into n8n
+## 4. Connect it to n8n
 
-Credentials → Add credential → Airtable (OAuth2 or Personal Access Token, either works). In every Airtable node in every workflow: re-select the base (it will show as a placeholder `appXXXXXXXXXXXXXX` until you pick it from the list) and re-select the table — the workflows are otherwise pre-wired.
+n8n → Credentials → Airtable OAuth2 → connect, and grant access to the **AI-ERP** base (Airtable OAuth grants are per base — a base created later isn't included automatically).

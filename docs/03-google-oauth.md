@@ -2,8 +2,8 @@
 
 Two Google credentials are needed:
 
-- **Gmail (OAuth2)** — WF3's notification path, WF4a (send cold emails), WF4b (read replies).
-- **Google Drive (OAuth2)** — WF8 (upload + share the generated invoice HTML).
+- **Gmail (OAuth2)** — WF4a (sends cold emails and stores the Gmail thread ID) and WF4b (reads replies). Both must use the **same mailbox**, otherwise WF4b never sees the threads WF4a started.
+- **Google Drive (OAuth2)** — WF8 (uploads the generated document HTML).
 
 ## Setup
 

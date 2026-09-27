@@ -7,6 +7,16 @@ The project uses **two separate bots**. Telegram lets only one webhook listen to
 | Owner bot | Telegram account 6 | WF9 | Manager agent — invoices, receipts, tasks, policy/tax questions, creating documents. Owner's chat ID only. |
 | Customer bot (`GuyCGCustomerServiceBot`) | Telegram account 4 | WF5 | Customer service — RAG over policies and products. |
 
+## The customer bot in action
+
+A policy question — the agent calls `search_policies` and answers from the returns policy (WF6 corpus):
+
+![Customer bot: returns policy](screenshots/telegram-customer-returns.png)
+
+A product question — the agent calls `search_products` and answers with the product's SKU, price and stock status from Airtable (WF7):
+
+![Customer bot: product price](screenshots/telegram-customer-price.png)
+
 ## Create both bots
 
 1. Open a chat with **@BotFather** on Telegram.

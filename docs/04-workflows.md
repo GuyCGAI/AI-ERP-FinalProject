@@ -63,7 +63,7 @@ Owner-only Telegram bot. The agent has memory, the policies knowledge base, and 
 ![WF9](screenshots/wf9-manager-agent.png)
 
 ### WF13 — App Gateway
-One webhook for the admin app: `chat` goes to a RAG agent, `create` writes a record to the requested table, anything else returns an error.
+One webhook for the admin app: `chat` goes to a RAG agent with the same `search_policies` / `search_products` tools as WF5, `create` writes a record to the requested table, anything else returns an error.
 
 ![WF13](screenshots/wf13-app-gateway.png)
 

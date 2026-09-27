@@ -6,8 +6,8 @@ All workflows live in the **My project** team project on n8n Cloud and use the A
 |---|------|---------|------|
 | WF1 | Tax Doc Validation | 3 Airtable Triggers — new Invoice / TaxInvoice / Receipt | `Validate` (Code) → `Is Valid?` → **true:** `Add To File Queue` (Files, Status=Pending) · **false:** `Mark Invalid` (Status=Invalid + ValidationError) |
 | WF3 | Contact Intake | Airtable Trigger — new Lead | `Normalize` → `Find Same Email` → `Count Matches` → `Duplicate?` → **true:** `Mark Dead` · **false:** `Keep As New` |
-| WF4a | Sales Cold Emails | Every 3 hours | `Search New Leads` (Status=New, 1 per run) → `Write Cold Email` (LLM chain) → `Send Email` (Gmail) → `Mark Contacted` (+ GmailThreadId) |
-| WF4b | Sales Reply Check | Gmail Trigger — subject "AI Electronics", every minute | `Extract Fields` → `Find Lead By Thread` (GmailThreadId) → `Is A Lead?` (a lead's thread, and received after our last email to them) → `Draft Reply` (AI Agent) → `Gmail Reply` → `Mark Replied` |
+| WF4a | Sales Cold Emails | Every 3 hours | `Search New Leads` (Status=New, 1 per run) → `Write Cold Email` (LLM chain) → `Build HTML Email` → `Send Email` (Gmail, HTML) → `Mark Contacted` (+ GmailThreadId) |
+| WF4b | Sales Reply Check | Gmail Trigger — subject "AI Electronics", every minute | `Extract Fields` → `Find Lead By Thread` (GmailThreadId) → `Is A Lead?` (a lead's thread, and received after our last email to them) → `Draft Reply` (AI Agent) → `Build HTML Email` → `Gmail Reply` (HTML) → `Mark Replied` |
 | WF5 | Customer Service | Telegram (customer bot) | `סוכן שירות` (AI Agent + Simple Memory) with two *Answer questions with a vector store* tools: `search_policies` (key `policies`) and `search_products` (key `products`) → reply in Telegram |
 | WF6 | Policies Embedding | Manual (form upload) | `On form submission` → `Simple Vector Store` (insert, key `policies`) with `Embeddings` + `Load Documents` |
 | WF7 | Products Embedding | Manual | `All Products` (Airtable) → `Build Text` → `Simple Vector Store` (insert, key `products`) with `Embeddings` + `Default Data Loader` + `Text Splitter` (800/100) |
@@ -36,6 +36,12 @@ Every 3 hours: take one `New` lead, have the LLM write a personal Hebrew email, 
 New Gmail messages are matched to a lead by thread ID; if it's a lead's reply, the agent drafts an answer, replies in the same thread, and marks the lead `Replied`.
 
 ![WF4b](screenshots/wf4b-sales-reply-check.png)
+
+Both sales emails go through a `Build HTML Email` Code node that wraps the AI's text in a branded, right-to-left HTML template (table layout with inline styles, so it renders the same in Gmail, Outlook and on phones), signed "צוות איי.איי אלקטרוניקה". WF4b only answers messages on a lead's thread that arrived after our last email to that lead, so copies of our own emails are never answered.
+
+**Example:** the lead replied to the cold email asking to set up a call; WF4b answered in the same thread within about a minute:
+
+![Sales reply email](screenshots/sales-email-reply.png)
 
 ### WF5 — Customer Service
 Telegram customer bot → service agent with memory and two RAG tools: `search_policies` and `search_products`.

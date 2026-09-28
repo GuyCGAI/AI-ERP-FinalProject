@@ -1,6 +1,6 @@
-# Telegram Bots
+# 2. Telegram bots
 
-The project uses **two separate bots**. Telegram lets only one webhook listen to a bot, so if both workflows point at the same bot token, whichever was activated last takes over and the other one goes silent (or answers in the wrong voice).
+The project uses **two separate bots**, so customers can never reach the manager agent (which reads revenue and creates documents). Telegram lets only one webhook listen to a bot, so if both workflows point at the same bot token, whichever was activated last takes over and the other one goes silent (or answers in the wrong voice).
 
 | Bot | n8n credential | Used by | Purpose |
 |-----|----------------|---------|---------|
@@ -38,6 +38,17 @@ To check which bot a credential really is: run the workflow once and open the se
 ## Restricting WF9 to the owner
 
 Message the owner bot once, then check WF9's **Executions** — the trigger payload includes `message.chat.id`. Put that number in the right-hand value of the **`Is Owner?`** IF node. The left side is `String($json.message.chat.id)` because Telegram sends the ID as a number and the IF node compares strings strictly. Anyone else gets the `Deny` reply.
+
+## Webhooks just work
+
+Telegram triggers are webhook-based: Telegram has to reach n8n over public HTTPS. n8n Cloud already has a public HTTPS address, so there is nothing to tunnel — publish the workflow and n8n registers the webhook with Telegram. A Telegram trigger only listens while its workflow is **published**; to test in the editor, click **Execute workflow** and then send a message.
+
+## Try it
+
+- Customer bot: `מה מדיניות ההחזרות?` · `יש אוזניות אלחוטיות במלאי?` · `כמה עולה מסך 27 אינץ'?`
+- Owner bot: `מה ההכנסות?` · `אילו חשבוניות עדיין פתוחות?` · `תיצור משימה להתקשר לספק מחר`
+
+If a bot answers "I don't know" about everything, the vector store is empty — run **WF6** and **WF7** first ([docs/04](04-workflows.md#run-them-in-this-order)).
 
 ## Tool names must be Latin
 

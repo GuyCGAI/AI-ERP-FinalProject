@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--
+  Tax invoice (DocType = TaxInvoice), as rendered by WF8's "Build HTML" node.
+  Same layout as invoice.html; the customer's business number is required (WF1 rejects a tax invoice without it).
+-->
+<html dir="rtl" lang="he">
+<head>
+  <meta charset="utf-8">
+  <title>חשבונית מס</title>
+  <style>
+    body{font-family:Arial,sans-serif;direction:rtl;text-align:right;padding:32px}
+    table{border-collapse:collapse;width:100%;margin-top:16px}
+    th,td{border:1px solid #ccc;padding:8px;text-align:right}
+    th{background:#f5f5f5;width:35%}
+    pre{font-family:inherit;white-space:pre-wrap}
+  </style>
+</head>
+<body>
+  <h1>חשבונית מס מספר {{ DocNumber }}</h1>
+  <p>איי.איי אלקטרוניקה בע״מ</p>
+  <p>תאריך: {{ IssueDate }}</p>
+  <p>לקוח: {{ CustomerName }} ({{ CustomerId }})</p>
+  <p>מספר עוסק של הלקוח: {{ CustomerBusinessNumber }}</p>
+  <h3>פריטים</h3>
+  <pre dir="rtl">{{ LineItems }}</pre>
+  <table dir="rtl">
+    <tr><th>סכום לפני מע״מ</th><td>{{ Subtotal }} ₪</td></tr>
+    <tr><th>מע״מ ({{ VATRate * 100 }}%)</th><td>{{ VATAmount }} ₪</td></tr>
+    <tr><th>סה״כ לתשלום</th><td>{{ Total }} ₪</td></tr>
+  </table>
+</body>
+</html>

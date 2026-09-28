@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  Receipt (DocType = Receipt), as rendered by WF8's "Build HTML" node.
+  No VAT rows: a receipt confirms a payment, so it shows the amount paid, the payment method and the related invoice.
+-->
+<html dir="rtl" lang="he">
+<head>
+  <meta charset="utf-8">
+  <title>קבלה</title>
+  <style>
+    body{font-family:Arial,sans-serif;direction:rtl;text-align:right;padding:32px}
+    table{border-collapse:collapse;width:100%;margin-top:16px}
+    th,td{border:1px solid #ccc;padding:8px;text-align:right}
+    th{background:#f5f5f5;width:35%}
+  </style>
+</head>
+<body>
+  <h1>קבלה מספר {{ DocNumber }}</h1>
+  <p>איי.איי אלקטרוניקה בע״מ</p>
+  <p>תאריך: {{ IssueDate }}</p>
+  <p>לקוח: {{ CustomerName }} ({{ CustomerId }})</p>
+  <table dir="rtl">
+    <tr><th>סכום ששולם</th><td>{{ Amount }} ₪</td></tr>
+    <tr><th>אמצעי תשלום</th><td>{{ PaymentMethod }}</td></tr>
+    <tr><th>חשבונית קשורה</th><td>{{ RelatedInvoice }}</td></tr>
+  </table>
+</body>
+</html>

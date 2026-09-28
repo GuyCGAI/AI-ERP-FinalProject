@@ -1,17 +1,58 @@
-# Google OAuth (Gmail + Drive)
+# 3. Google OAuth (Gmail + Drive)
 
-Two Google credentials are needed:
+Needed for the **sales agent** (sends and reads email) and the **file pipeline** (uploads documents to Drive). One Google Cloud project covers both.
 
-- **Gmail (OAuth2)** — WF4a (sends cold emails and stores the Gmail thread ID) and WF4b (reads replies). Both must use the **same mailbox**, otherwise WF4b never sees the threads WF4a started.
-- **Google Drive (OAuth2)** — WF8 (uploads the generated document HTML).
+## 1. Create a project and enable the APIs
 
-## Setup
+1. [Google Cloud Console](https://console.cloud.google.com/) → **Create project** → name it `ai-erp`.
+2. **APIs & Services → Library** → enable both:
+   - **Gmail API**
+   - **Google Drive API**
 
-1. [Google Cloud Console](https://console.cloud.google.com) → create a project (or reuse one) → enable the **Gmail API** and **Google Drive API**.
-2. OAuth consent screen → External → add your own Google account as a test user.
-3. Credentials → Create OAuth client ID → Web application → add `https://<your-n8n-domain>/rest/oauth2-credential/callback` as an authorized redirect URI (n8n shows you the exact URL when you create the credential).
-4. In n8n: Credentials → Add credential → Gmail OAuth2 API, paste the Client ID/Secret, click "Connect" and authorize. Repeat for Google Drive OAuth2 API.
+## 2. Configure the consent screen
 
-## Known limitation
+**APIs & Services → OAuth consent screen**
 
-The OAuth consent screen stays in **Testing** mode unless you go through Google's verification process, which is out of scope for a course project. In Testing mode, refresh tokens expire after **7 days** — you'll need to reconnect both credentials weekly.
+- User type: **External**
+- App name: `AI-ERP`, and your email where required.
+- **Test users** → add your own Google account. While the app is in *Testing*, only listed test users can authorize it.
+- Save. You don't need to publish or get verified for a course project.
+
+## 3. Create the OAuth client
+
+**APIs & Services → Credentials → Create credentials → OAuth client ID**
+
+- Application type: **Web application**
+- Name: `n8n`
+- **Authorized redirect URIs** → add exactly:
+  ```
+  https://<your-instance>.app.n8n.cloud/rest/oauth2-credential/callback
+  ```
+  Don't guess it: open the Gmail or Drive credential in n8n and copy the **OAuth Redirect URL** it shows — it must match character for character.
+
+Copy the **Client ID** and **Client secret**.
+
+## 4. Add the credentials in n8n
+
+Create **two** credentials — both use the same client id and secret:
+
+| Type | Name in this project |
+|---|---|
+| Gmail OAuth2 API | Gmail account 2 |
+| Google Drive OAuth2 API | Google Drive account |
+
+For each: paste the client id + secret → **Sign in with Google** → pick your test-user account → approve. Google warns that the app is unverified; choose **Advanced → Go to AI-ERP (unsafe)** — it's your own app.
+
+## Which workflows use what
+
+| Credential | Workflows |
+|---|---|
+| Gmail | **WF4a** sends the cold email and stores its Gmail thread id on the lead · **WF4b** reads replies and answers in the same thread. Both must use the **same mailbox**, otherwise WF4b never sees the threads WF4a started |
+| Google Drive | **WF8** uploads the generated invoice / tax invoice / receipt (HTML, `text/html`) to My Drive |
+
+## Gotchas
+
+- **Cold emails go to real inboxes.** WF4a sends one email per run to a lead with `Status = New`. In this project every demo lead has a `+alias` of the project's own mailbox (`guycgai+lead1@gmail.com` … `+lead6`), and WF13 gives every lead created from the app such an alias — so no stranger ever gets an email, and you can answer the email yourself to test WF4b.
+- **WF4b only answers replies.** It skips messages that arrived before our last email to the lead (`LastContactedAt`), so the copy of our own cold email in the same mailbox is never answered.
+- **Refresh tokens expire after 7 days** while the consent screen is in *Testing* mode. When emails stop going out or Drive uploads fail, reconnect both credentials (or publish the app).
+- Gmail sending limits (~500/day on a personal account) don't matter at this scale.

@@ -157,6 +157,4 @@ Nothing here is deployed or executed. The repo holds the schema, the content the
 
 1. [Airtable](docs/01-airtable.md) · 2. [Telegram bots](docs/02-telegram-bots.md) · 3. [Google OAuth](docs/03-google-oauth.md) · 4. [Workflows](docs/04-workflows.md) · 5. [Admin app](docs/05-app.md) · 6. [Tax & VAT](docs/06-tax-and-vat.md) · 7. [End-to-end tests](docs/07-end-to-end-tests.md)
 
-## Credits
 
-Project structure follows the course reference repo [tomerfooks/jb-erp-ai](https://github.com/tomerfooks/jb-erp-ai), built independently for the same assignment.

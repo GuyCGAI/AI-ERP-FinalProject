@@ -403,16 +403,16 @@ Successful runs: `create` of INV-1003 from the app webhook (top) and `list` for 
 - A lead created anywhere is de-duplicated by **WF3** → emailed by **WF4a** (which stores the Gmail thread) → replies are answered by **WF4b**.
 - **WF6/WF7** fill the in-memory vector store that **WF5**, **WF9** and **WF13** read from.
 
-## Differences from the reference structure
+## Design choices
 
-- **Models:** OpenAI (`gpt-5-mini`, `text-embedding-3-small`) instead of GLM / bge-m3.
-- **WF8** has no HTML→PDF step. The course brief rules out an external conversion service, so the invoice stays HTML on Drive (manual PDF: open in Google Docs → Download → PDF).
-- **WF8** has an extra `Get Source Record` node — the Files queue row only stores a pointer, so the HTML step needs the actual document data.
-- **WF6** keeps the policy text inside the workflow (as the course brief asks) instead of reading it from a Drive folder.
+- **Models:** OpenAI — `gpt-5-mini` for the agents and emails, `text-embedding-3-small` for the vector stores.
+- **WF8** has no HTML→PDF step. The course brief rules out an external conversion service, so the document stays HTML on Drive (manual PDF: open in Google Docs → Download → PDF).
+- **WF8** has a `Get Source Record` node — the Files queue row only stores a pointer, so the HTML step needs the actual document data.
+- **WF6** keeps the policy text inside the workflow, as the course brief asks, instead of reading it from files.
 - **WF9**'s document search tool is named `search_invoices_tax_receipt` (no slashes, so it's a valid tool name).
 - **WF5**'s tools are named in English (`search_policies`, `search_products`): n8n builds the tool name from the node name and strips non-Latin letters, so two Hebrew-named tools both became `_` and collided.
-- **WF13** is added for the admin app (section 8 of the brief).
+- **WF13** serves the admin app (section 8 of the brief).
 
 ## Keeping the workflows
 
-The **live n8n instance is the source of truth** — like the reference repo, this repo keeps no workflow exports. Exports carry node parameters (the owner's Telegram chat id, the webhook path, the base id), so they stay out of git. To back a workflow up: open it → ⋯ → **Download**, and keep the file private.
+The **live n8n instance is the source of truth** — this repo keeps no workflow exports. Exports carry node parameters (the owner's Telegram chat id, the webhook path, the base id), so they stay out of git. To back a workflow up: open it → ⋯ → **Download**, and keep the file private.

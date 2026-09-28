@@ -5,13 +5,16 @@
     "The 9 Airtable tables the workflows and the admin app use. Build the base from this file.",
     "Types: text, longtext, email, phone, url, int, currency, percent, date, datetime, select, created.",
     "Relationships are plain text foreign keys (e.g. CustomerId = 'CUST-0001'), not Airtable link fields.",
-    "'created' = Airtable 'Created time'. The API can't create it - add a field named Created by hand in every table. The Airtable Triggers depend on it.",
+    "'created' = Airtable 'Created time'. The API can't create it - add a field named Created by hand. The Airtable Triggers (Invoices, TaxInvoices, Receipts, Leads) depend on it.",
     "The first field in each table is the primary field.",
     "percent is stored as a fraction: 0.18 = 18%."
   ],
   "tables": [
     {
       "name": "Customers",
+      "usedBy": [
+        "WF13 (list, create)"
+      ],
       "fields": [
         {
           "name": "CustomerId",
@@ -70,7 +73,7 @@
         "WF3 (trigger)",
         "WF4a",
         "WF4b",
-        "WF13"
+        "WF13 (list, create)"
       ],
       "fields": [
         {
@@ -143,7 +146,8 @@
     {
       "name": "Products",
       "usedBy": [
-        "WF7"
+        "WF7",
+        "WF13 (list, create)"
       ],
       "fields": [
         {
@@ -277,7 +281,8 @@
       "usedBy": [
         "WF1 (trigger)",
         "WF8",
-        "WF9"
+        "WF9",
+        "WF13 (list, create)"
       ],
       "fields": [
         {
@@ -361,7 +366,8 @@
       "usedBy": [
         "WF1 (trigger)",
         "WF8",
-        "WF9"
+        "WF9",
+        "WF13 (list)"
       ],
       "fields": [
         {
@@ -441,7 +447,8 @@
       "usedBy": [
         "WF1 (trigger)",
         "WF8",
-        "WF9"
+        "WF9",
+        "WF13 (list)"
       ],
       "fields": [
         {
@@ -511,7 +518,8 @@
     {
       "name": "Tasks",
       "usedBy": [
-        "WF9"
+        "WF9",
+        "WF13 (list, create)"
       ],
       "fields": [
         {
@@ -633,7 +641,7 @@
     "engine": "n8n Simple Vector Store (in-memory)",
     "embeddingModel": "text-embedding-3-small",
     "keys": {
-      "policies": "Built by WF6 from mock/policies/*.md",
+      "policies": "Built by WF6 from the policy text inside its 'עריכת שדות' node (a readable copy is in mock/policies/*.md)",
       "products": "Built by WF7 from the Products table"
     },
     "note": "In-memory: wiped whenever n8n restarts. Re-run WF6 and WF7 after a restart."

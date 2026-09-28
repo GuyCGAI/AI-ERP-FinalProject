@@ -24,8 +24,6 @@ The course brief asks for a no-code build, so no workflow uses a Code node. Logi
 ### WF1 — Tax Doc Validation
 Three Airtable triggers (one per document table) feed `Read Document` (Edit Fields, the document's values as one flat item) and `Validate` (Edit Fields) checks required fields, VAT rate by issue date, VAT amount and total arithmetic, and a customer business number on tax invoices. Valid documents are queued for WF8; invalid ones are marked with the reason.
 
-![WF1](screenshots/wf1-tax-doc-validation.png)
-
 A successful run (one trigger fired; the `Mark Invalid` branch did not run):
 
 ![WF1 run](screenshots/run-wf1.jpg)
@@ -33,16 +31,12 @@ A successful run (one trigger fired; the `Mark Invalid` branch did not run):
 ### WF3 — Contact Intake
 A new lead's email is normalized (trimmed, lower-case), checked against existing leads with the same email, and marked `Dead` if another lead already has it.
 
-![WF3](screenshots/wf3-contact-intake.png)
-
-A successful run (a duplicate lead, so the `Mark Dead` branch ran):
+A successful run (a new lead with a new email, so it stays `New` and `Mark Dead` does not run):
 
 ![WF3 run](screenshots/run-wf3.jpg)
 
 ### WF4a — Sales Cold Emails
 Every 3 hours: take one `New` lead, have the LLM write a personal Hebrew email, send it from Gmail, and store the Gmail thread ID on the lead.
-
-![WF4a](screenshots/wf4a-sales-cold-emails.png)
 
 A successful run:
 
@@ -50,8 +44,6 @@ A successful run:
 
 ### WF4b — Sales Reply Check
 New Gmail messages are matched to a lead by thread ID; if it's a lead's reply, the agent drafts an answer, replies in the same thread, and marks the lead `Replied`.
-
-![WF4b](screenshots/wf4b-sales-reply-check.png)
 
 A successful run:
 
@@ -68,9 +60,11 @@ Telegram customer bot → service agent with memory and two RAG tools: `search_p
 
 ![WF5](screenshots/wf5-customer-service.png)
 
-A successful run (only the tools the agent used in that conversation run, so the policies branch has no check):
+A successful run: the headphones question below. The agent only needed `search_products`, so the policies branch has no check:
 
 ![WF5 run](screenshots/run-wf5.jpg)
+
+![Customer bot: headphones in stock](screenshots/telegram-customer-headphones.png)
 
 ### WF6 — Policies Embedding
 As the course brief asks, the policy text lives inside the workflow: the `עריכת שדות` (Edit Fields) node holds the 12 policy topics as separate text fields (returns, warranty, shipping, prices, payments, tax rules, agent guardrails, tone, sales playbook, manager brief, business overview, FAQ). **Execute workflow** chunks and embeds them into the in-memory store under the key `policies`. To change a policy: edit its text box and run WF6 again. (The same text is kept in [`mock/policies/`](../mock/policies/) as a readable copy.)
@@ -84,16 +78,12 @@ A successful run:
 ### WF7 — Products Embedding
 Read every product from Airtable → build one Hebrew text per product → embed under the key `products`.
 
-![WF7](screenshots/wf7-products-embedding.png)
-
 A successful run:
 
 ![WF7 run](screenshots/run-wf7.jpg)
 
 ### WF8 — File Pipeline
 Started by WF1 as soon as a valid document is queued (an hourly schedule catches anything left over): pending rows in `Files` → fetch the source document → Hebrew RTL HTML → Google Drive (as `text/html`) → mark `Done` and write the Drive link into the document's `PdfUrl`, which the app shows as the "מסמך" link.
-
-![WF8](screenshots/wf8-file-pipeline.png)
 
 A successful run:
 
@@ -114,8 +104,6 @@ The conversation from that run ("מה ההכנסות?"):
 
 ### WF13 — App Gateway
 The only entry point for the admin app, so the app holds no Airtable key. `list` reads a table (customers, leads, orders, invoices, products, tasks) and converts it to the app's row format; `create` converts an app form (Hebrew labels → Airtable values, running IDs such as `CUST-0001` / `ORD-0001`, invoices with DocNumber + 18%/17% VAT + total) and writes it (this is a demo, so a new lead always gets a `+leadN` alias of the project mailbox, e.g. `guycgai+lead6@gmail.com`, and WF4a's email to it really arrives); `chat` goes to a RAG agent with the same `search_policies` / `search_products` tools as WF5; anything else returns an error. The Airtable read retries on the 5-requests-per-second limit.
-
-![WF13](screenshots/wf13-app-gateway.png)
 
 Successful runs: `create` from an app form (top) and `list` for a table screen (bottom):
 

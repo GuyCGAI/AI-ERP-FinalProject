@@ -13,6 +13,10 @@ The project uses **two separate bots**. Telegram lets only one webhook listen to
 
 ![Customer bot: product price](screenshots/telegram-customer-price.png)
 
+**Customer bot (WF5)** — "are there wireless headphones in stock, and what do they cost?". The agent searches the products store and lists the three headphone models with SKU, price and stock:
+
+![Customer bot: headphones in stock](screenshots/telegram-customer-headphones.png)
+
 **Owner bot (WF9)** — a policy question. The manager agent calls its policies knowledge tool (`Answer questions with a vector store`) and summarizes the returns policy from the WF6 corpus:
 
 ![Owner bot: returns policy](screenshots/telegram-manager-returns.png)

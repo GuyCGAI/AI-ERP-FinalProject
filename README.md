@@ -7,7 +7,7 @@ Everything runs in the cloud. Nothing to install, nothing to run locally, no ser
 ## What's in it
 
 - **4 AI agents** — a manager agent (owner-only Telegram bot with tools for tasks, invoices and documents), a customer service agent (RAG over policies + products), a sales agent (cold outreach + reply handling), and an app gateway agent for the admin app.
-- **10 n8n workflows** covering tax-document validation, lead intake, sales, RAG ingestion, document generation, and the two bots.
+- **10 n8n workflows** covering tax-document validation, lead intake, sales, RAG ingestion, document generation, and the two bots — built without Code nodes (Edit Fields, IF/Switch, Aggregate, HTML and Airtable formulas).
 - **RAG on n8n's Simple Vector Store** — two in-memory stores (`policies`, `products`), embedded with OpenAI `text-embedding-3-small`, queried through the AI Agent's *Answer questions with a vector store* tool.
 - **Israeli tax rules built in** — 18% VAT from 01/01/2025 (17% before), a business number required on tax invoices, running document numbers, Hebrew RTL documents.
 - **Airtable as the single database** — 9 tables: Customers, Leads, Products, Orders, Invoices, TaxInvoices, Receipts, Tasks, Files.

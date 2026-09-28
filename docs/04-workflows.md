@@ -4,21 +4,25 @@ All workflows live in the **My project** team project on n8n Cloud and use the A
 
 | # | Name | Trigger | Flow |
 |---|------|---------|------|
-| WF1 | Tax Doc Validation | 3 Airtable Triggers — new Invoice / TaxInvoice / Receipt | `Validate` (Code) → `Is Valid?` → **true:** `Add To File Queue` (Files, Status=Pending) → `Run File Pipeline` (starts WF8 right away) · **false:** `Mark Invalid` (Status=Invalid + ValidationError) |
-| WF3 | Contact Intake | Airtable Trigger — new Lead | `Normalize` → `Find Same Email` → `Count Matches` → `Duplicate?` → **true:** `Mark Dead` · **false:** `Keep As New` |
-| WF4a | Sales Cold Emails | Every 3 hours | `Search New Leads` (Status=New and has an email, 1 per run) → `Write Cold Email` (LLM chain) → `Build HTML Email` → `Send Email` (Gmail, HTML) → `Mark Contacted` (+ GmailThreadId) |
-| WF4b | Sales Reply Check | Gmail Trigger — subject "AI Electronics", every minute | `Extract Fields` → `Find Lead By Thread` (GmailThreadId) → `Is A Lead?` (a lead's thread, and received after our last email to them) → `Draft Reply` (AI Agent) → `Build HTML Email` → `Gmail Reply` (HTML) → `Mark Replied` |
+| WF1 | Tax Doc Validation | 3 Airtable Triggers — new Invoice / TaxInvoice / Receipt | `Read Document` → `Validate` (Edit Fields: builds the list of errors) → `Is Valid?` (no errors) → **true:** `Add To File Queue` (Files, Status=Pending) → `Run File Pipeline` (starts WF8 right away) · **false:** `Mark Invalid` (Status=Invalid + ValidationError) |
+| WF3 | Contact Intake | Airtable Trigger — new Lead | `Normalize` → `Find Same Email` (Airtable formula: the same email on a lead created earlier) → `Duplicate?` → **true:** `Mark Dead` · **false:** `Keep As New` |
+| WF4a | Sales Cold Emails | Every 3 hours | `Search New Leads` (Status=New and has an email, 1 per run) → `Write Cold Email` (LLM chain) → `Build HTML Email` (HTML node) → `Send Email` (Gmail, HTML) → `Mark Contacted` (+ GmailThreadId) |
+| WF4b | Sales Reply Check | Gmail Trigger — subject "AI Electronics", every minute | `Extract Fields` → `Find Lead By Thread` (GmailThreadId) → `Is A Lead?` (a lead's thread, and received after our last email to them) → `Draft Reply` (AI Agent) → `Build HTML Email` (HTML node) → `Gmail Reply` (HTML) → `Mark Replied` |
 | WF5 | Customer Service | Telegram (customer bot) | `סוכן שירות` (AI Agent + Simple Memory) with two *Answer questions with a vector store* tools: `search_policies` (key `policies`) and `search_products` (key `products`) → reply in Telegram |
 | WF6 | Policies Embedding | Manual | `Manual Trigger` → `עריכת שדות` (the full policy text, 12 topics) → `Simple Vector Store` (insert, key `policies`) with `Embeddings` + `Load Documents` + `Text Splitter` (1000/150) |
-| WF7 | Products Embedding | Manual | `All Products` (Airtable) → `Build Text` → `Simple Vector Store` (insert, key `products`) with `Embeddings` + `Default Data Loader` + `Text Splitter` (800/100) |
-| WF8 | File Pipeline | Called by WF1 (+ hourly safety net) | `Pending Files` → `Get Source Record` → `Build HTML` (Hebrew, RTL) → `Convert to File` (text/html) → `Google Drive Upload` → `Mark Done` (+ DriveLink) → `Save Link On Document` (PdfUrl on the invoice/tax invoice/receipt) |
+| WF7 | Products Embedding | Manual | `All Products` (Airtable) → `Build Text` (Edit Fields) → `Simple Vector Store` (insert, key `products`) with `Embeddings` + `Default Data Loader` + `Text Splitter` (800/100) |
+| WF8 | File Pipeline | Called by WF1 (+ hourly safety net) | `Pending Files` → `Get Source Record` → `Build HTML` (HTML node, Hebrew RTL) → `Prepare File` (Edit Fields: base64 + file name) → `Convert to File` (text/html) → `Google Drive Upload` → `Mark Done` (+ DriveLink) → `Save Link On Document` (PdfUrl on the invoice/tax invoice/receipt) |
 | WF9 | Manager Agent | Telegram (owner bot) | `Is Owner?` → `Manager Agent` (Chat Memory; tools: policies vector store, `search_tasks`, `create_task`, `search_invoices_tax_receipt`, `Create_Invoice`, `Create_Tax_Invoice`, `Create_Receipt`) → `Send Answer` · not owner → `Deny` |
-| WF13 | App Gateway | Webhook `POST /app-gateway` | For the admin app: `{action:"list", table}` → reads the table and returns `{records}` in the app's row format; `{action:"create", table, payload}` → turns the form into an Airtable record (running ID; invoices also get DocNumber, VAT and total) and writes it; `{action:"chat", message}` → RAG agent |
+| WF13 | App Gateway | Webhook `POST /app-gateway` | For the admin app: `{action:"list", table}` → reads the table, a Switch sends each record to that table's Edit Fields node (the app's row format) and an Aggregate returns `{records}`; `{action:"create", table, payload}` → Aggregate of the existing records → `מספר רץ הבא` (next running number) → a Switch to that table's Edit Fields node (invoices also go through `חישוב מע״מ`) → Airtable create; `{action:"chat", message}` → RAG agent |
+
+## No Code nodes
+
+The course brief asks for a no-code build, so no workflow uses a Code node. Logic is done with regular nodes: **Edit Fields (Set)** with expressions for mapping and calculations, **IF / Switch** for branching, **Aggregate** to turn many records into one list, the **HTML** node for the email and document templates, and **Airtable formulas** for lookups (for example WF3's "same email on an older lead").
 
 ## Screenshots
 
 ### WF1 — Tax Doc Validation
-Three Airtable triggers (one per document table) feed a single `Validate` Code node: required fields, VAT rate by issue date, VAT amount and total arithmetic, and a customer business number on tax invoices. Valid documents are queued for WF8; invalid ones are marked with the reason.
+Three Airtable triggers (one per document table) feed `Read Document` (Edit Fields, the document's values as one flat item) and `Validate` (Edit Fields) checks required fields, VAT rate by issue date, VAT amount and total arithmetic, and a customer business number on tax invoices. Valid documents are queued for WF8; invalid ones are marked with the reason.
 
 ![WF1](screenshots/wf1-tax-doc-validation.png)
 
@@ -53,7 +57,7 @@ A successful run:
 
 ![WF4b run](screenshots/run-wf4b.jpg)
 
-Both sales emails go through a `Build HTML Email` Code node that wraps the AI's text in a branded, right-to-left HTML template (table layout with inline styles, so it renders the same in Gmail, Outlook and on phones), signed "צוות איי.איי אלקטרוניקה". WF4b only answers messages on a lead's thread that arrived after our last email to that lead, so copies of our own emails are never answered.
+Both sales emails go through a `Build HTML Email` HTML node that wraps the AI's text in a branded, right-to-left HTML template (table layout with inline styles, so it renders the same in Gmail, Outlook and on phones), signed "צוות איי.איי אלקטרוניקה". WF4b only answers messages on a lead's thread that arrived after our last email to that lead, so copies of our own emails are never answered.
 
 **Example:** the lead replied to the cold email asking to set up a call; WF4b answered in the same thread within about a minute:
 

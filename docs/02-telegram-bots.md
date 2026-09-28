@@ -17,6 +17,10 @@ The project uses **two separate bots**. Telegram lets only one webhook listen to
 
 ![Owner bot: returns policy](screenshots/telegram-manager-returns.png)
 
+**Owner bot (WF9)** — "מה ההכנסות?". The agent calls `search_invoices_tax_receipt` and sums the documents in Airtable: total, before VAT, VAT, what was paid and what is still open (this is execution 5906 in the [WF9 run screenshot](04-workflows.md#wf9--manager-agent)):
+
+![Owner bot: revenue](screenshots/telegram-manager-revenue.png)
+
 ## Create both bots
 
 1. Open a chat with **@BotFather** on Telegram.

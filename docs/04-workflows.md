@@ -104,6 +104,10 @@ A successful run (the agent used `search_invoices_tax_receipt`; tools it did not
 
 ![WF9 run](screenshots/run-wf9.jpg)
 
+The conversation from that run ("מה ההכנסות?"):
+
+![Owner bot: revenue](screenshots/telegram-manager-revenue.png)
+
 ### WF13 — App Gateway
 The only entry point for the admin app, so the app holds no Airtable key. `list` reads a table (customers, leads, orders, invoices, products, tasks) and converts it to the app's row format; `create` converts an app form (Hebrew labels → Airtable values, running IDs such as `CUST-0001` / `ORD-0001`, invoices with DocNumber + 18%/17% VAT + total) and writes it (this is a demo, so a new lead always gets a `+leadN` alias of the project mailbox, e.g. `guycgai+lead6@gmail.com`, and WF4a's email to it really arrives); `chat` goes to a RAG agent with the same `search_policies` / `search_products` tools as WF5; anything else returns an error. The Airtable read retries on the 5-requests-per-second limit.
 

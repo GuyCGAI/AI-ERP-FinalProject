@@ -2,7 +2,7 @@
   "base": "AI-ERP",
   "currencySymbol": "₪",
   "_notes": [
-    "The 8 Airtable tables the workflows use. Build the base from this file.",
+    "The 9 Airtable tables the workflows and the admin app use. Build the base from this file.",
     "Types: text, longtext, email, phone, url, int, currency, percent, date, datetime, select, created.",
     "Relationships are plain text foreign keys (e.g. CustomerId = 'CUST-0001'), not Airtable link fields.",
     "'created' = Airtable 'Created time'. The API can't create it - add a field named Created by hand in every table. The Airtable Triggers depend on it.",
@@ -13,143 +13,619 @@
     {
       "name": "Customers",
       "fields": [
-        { "name": "CustomerId", "type": "text", "primary": true },
-        { "name": "Name", "type": "text" },
-        { "name": "Email", "type": "email" },
-        { "name": "Phone", "type": "phone" },
-        { "name": "Company", "type": "text" },
-        { "name": "BusinessNumber", "type": "text" },
-        { "name": "Address", "type": "text" },
-        { "name": "City", "type": "text" },
-        { "name": "Status", "type": "select", "choices": ["Active", "Inactive"] },
-        { "name": "Notes", "type": "longtext" },
-        { "name": "Created", "type": "created" }
+        {
+          "name": "CustomerId",
+          "type": "text",
+          "primary": true
+        },
+        {
+          "name": "Name",
+          "type": "text"
+        },
+        {
+          "name": "Email",
+          "type": "email"
+        },
+        {
+          "name": "Phone",
+          "type": "phone"
+        },
+        {
+          "name": "Company",
+          "type": "text"
+        },
+        {
+          "name": "BusinessNumber",
+          "type": "text"
+        },
+        {
+          "name": "Address",
+          "type": "text"
+        },
+        {
+          "name": "City",
+          "type": "text"
+        },
+        {
+          "name": "Status",
+          "type": "select",
+          "choices": [
+            "Active",
+            "Inactive"
+          ]
+        },
+        {
+          "name": "Notes",
+          "type": "longtext"
+        },
+        {
+          "name": "Created",
+          "type": "created"
+        }
       ]
     },
     {
       "name": "Leads",
-      "usedBy": ["WF3 (trigger)", "WF4a", "WF4b", "WF13"],
+      "usedBy": [
+        "WF3 (trigger)",
+        "WF4a",
+        "WF4b",
+        "WF13"
+      ],
       "fields": [
-        { "name": "LeadId", "type": "text", "primary": true },
-        { "name": "Name", "type": "text" },
-        { "name": "Email", "type": "email" },
-        { "name": "Phone", "type": "phone" },
-        { "name": "Company", "type": "text" },
-        { "name": "Source", "type": "select", "choices": ["Website", "Referral", "ColdEmail", "Exhibition", "SocialMedia"] },
-        { "name": "Interest", "type": "text" },
-        { "name": "Status", "type": "select", "choices": ["New", "Contacted", "Replied", "Qualified", "Converted", "Dead"] },
-        { "name": "GmailThreadId", "type": "text", "note": "Written by WF4a when the cold email is sent; WF4b matches replies on it." },
-        { "name": "LastContactedAt", "type": "datetime" },
-        { "name": "Notes", "type": "longtext" },
-        { "name": "Created", "type": "created" }
+        {
+          "name": "LeadId",
+          "type": "text",
+          "primary": true
+        },
+        {
+          "name": "Name",
+          "type": "text"
+        },
+        {
+          "name": "Email",
+          "type": "email"
+        },
+        {
+          "name": "Phone",
+          "type": "phone"
+        },
+        {
+          "name": "Company",
+          "type": "text"
+        },
+        {
+          "name": "Source",
+          "type": "select",
+          "choices": [
+            "Website",
+            "Referral",
+            "ColdEmail",
+            "Exhibition",
+            "SocialMedia"
+          ]
+        },
+        {
+          "name": "Interest",
+          "type": "text"
+        },
+        {
+          "name": "Status",
+          "type": "select",
+          "choices": [
+            "New",
+            "Contacted",
+            "Replied",
+            "Qualified",
+            "Converted",
+            "Dead"
+          ]
+        },
+        {
+          "name": "GmailThreadId",
+          "type": "text",
+          "note": "Written by WF4a when the cold email is sent; WF4b matches replies on it."
+        },
+        {
+          "name": "LastContactedAt",
+          "type": "datetime"
+        },
+        {
+          "name": "Notes",
+          "type": "longtext"
+        },
+        {
+          "name": "Created",
+          "type": "created"
+        }
       ]
     },
     {
       "name": "Products",
-      "usedBy": ["WF7"],
+      "usedBy": [
+        "WF7"
+      ],
       "fields": [
-        { "name": "ProductId", "type": "text", "primary": true },
-        { "name": "SKU", "type": "text" },
-        { "name": "Name", "type": "text" },
-        { "name": "Category", "type": "select", "choices": ["אוזניות", "רמקולים", "מסכים", "מקלדות", "עכברים", "מצלמות רשת", "מיקרופונים", "עגינה", "כבלים", "מטענים", "אחסון", "רשת", "שירותים"] },
-        { "name": "Brand", "type": "text" },
-        { "name": "Description", "type": "longtext" },
-        { "name": "Price", "type": "currency" },
-        { "name": "Cost", "type": "currency" },
-        { "name": "Stock", "type": "int" },
-        { "name": "SupplierId", "type": "text" },
-        { "name": "Warranty", "type": "text" },
-        { "name": "Status", "type": "select", "choices": ["Active", "Discontinued", "OutOfStock"] },
-        { "name": "Created", "type": "created" }
+        {
+          "name": "ProductId",
+          "type": "text",
+          "primary": true
+        },
+        {
+          "name": "SKU",
+          "type": "text"
+        },
+        {
+          "name": "Name",
+          "type": "text"
+        },
+        {
+          "name": "Category",
+          "type": "select",
+          "choices": [
+            "אוזניות",
+            "רמקולים",
+            "מסכים",
+            "מקלדות",
+            "עכברים",
+            "מצלמות רשת",
+            "מיקרופונים",
+            "עגינה",
+            "כבלים",
+            "מטענים",
+            "אחסון",
+            "רשת",
+            "שירותים"
+          ]
+        },
+        {
+          "name": "Brand",
+          "type": "text"
+        },
+        {
+          "name": "Description",
+          "type": "longtext"
+        },
+        {
+          "name": "Price",
+          "type": "currency"
+        },
+        {
+          "name": "Cost",
+          "type": "currency"
+        },
+        {
+          "name": "Stock",
+          "type": "int"
+        },
+        {
+          "name": "SupplierId",
+          "type": "text"
+        },
+        {
+          "name": "Warranty",
+          "type": "text"
+        },
+        {
+          "name": "Status",
+          "type": "select",
+          "choices": [
+            "Active",
+            "Discontinued",
+            "OutOfStock"
+          ]
+        },
+        {
+          "name": "Created",
+          "type": "created"
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "usedBy": [
+        "WF13 (list, create)"
+      ],
+      "fields": [
+        {
+          "name": "OrderId",
+          "type": "text",
+          "primary": true
+        },
+        {
+          "name": "CustomerId",
+          "type": "text"
+        },
+        {
+          "name": "CustomerName",
+          "type": "text"
+        },
+        {
+          "name": "Items",
+          "type": "longtext"
+        },
+        {
+          "name": "Amount",
+          "type": "currency"
+        },
+        {
+          "name": "OrderDate",
+          "type": "date"
+        },
+        {
+          "name": "Status",
+          "type": "select",
+          "choices": [
+            "Pending",
+            "Shipped",
+            "Completed",
+            "Cancelled"
+          ]
+        },
+        {
+          "name": "Notes",
+          "type": "longtext"
+        },
+        {
+          "name": "Created",
+          "type": "created"
+        }
       ]
     },
     {
       "name": "Invoices",
-      "usedBy": ["WF1 (trigger)", "WF8", "WF9"],
+      "usedBy": [
+        "WF1 (trigger)",
+        "WF8",
+        "WF9"
+      ],
       "fields": [
-        { "name": "InvoiceId", "type": "text", "primary": true },
-        { "name": "DocNumber", "type": "int" },
-        { "name": "CustomerId", "type": "text" },
-        { "name": "CustomerName", "type": "text" },
-        { "name": "IssueDate", "type": "date" },
-        { "name": "DueDate", "type": "date" },
-        { "name": "LineItems", "type": "longtext" },
-        { "name": "Subtotal", "type": "currency" },
-        { "name": "VATRate", "type": "percent" },
-        { "name": "VATAmount", "type": "currency" },
-        { "name": "Total", "type": "currency" },
-        { "name": "Status", "type": "select", "choices": ["Draft", "Issued", "Paid", "Overdue", "Cancelled", "Invalid"] },
-        { "name": "ValidationError", "type": "text" },
-        { "name": "OrderId", "type": "text" },
-        { "name": "Created", "type": "created" }
+        {
+          "name": "InvoiceId",
+          "type": "text",
+          "primary": true
+        },
+        {
+          "name": "DocNumber",
+          "type": "int"
+        },
+        {
+          "name": "CustomerId",
+          "type": "text"
+        },
+        {
+          "name": "CustomerName",
+          "type": "text"
+        },
+        {
+          "name": "IssueDate",
+          "type": "date"
+        },
+        {
+          "name": "DueDate",
+          "type": "date"
+        },
+        {
+          "name": "LineItems",
+          "type": "longtext"
+        },
+        {
+          "name": "Subtotal",
+          "type": "currency"
+        },
+        {
+          "name": "VATRate",
+          "type": "percent"
+        },
+        {
+          "name": "VATAmount",
+          "type": "currency"
+        },
+        {
+          "name": "Total",
+          "type": "currency"
+        },
+        {
+          "name": "Status",
+          "type": "select",
+          "choices": [
+            "Draft",
+            "Issued",
+            "Paid",
+            "Overdue",
+            "Cancelled",
+            "Invalid"
+          ]
+        },
+        {
+          "name": "ValidationError",
+          "type": "text"
+        },
+        {
+          "name": "OrderId",
+          "type": "text"
+        },
+        {
+          "name": "PdfUrl",
+          "type": "url",
+          "note": "Google Drive link of the generated document. Written by WF8, shown in the app."
+        },
+        {
+          "name": "Created",
+          "type": "created"
+        }
       ]
     },
     {
       "name": "TaxInvoices",
-      "usedBy": ["WF1 (trigger)", "WF8", "WF9"],
+      "usedBy": [
+        "WF1 (trigger)",
+        "WF8",
+        "WF9"
+      ],
       "fields": [
-        { "name": "TaxInvoiceId", "type": "text", "primary": true },
-        { "name": "DocNumber", "type": "int" },
-        { "name": "CustomerId", "type": "text" },
-        { "name": "CustomerName", "type": "text" },
-        { "name": "CustomerBusinessNumber", "type": "text", "note": "Required - WF1 rejects a tax invoice without it." },
-        { "name": "IssueDate", "type": "date" },
-        { "name": "LineItems", "type": "longtext" },
-        { "name": "Subtotal", "type": "currency" },
-        { "name": "VATRate", "type": "percent" },
-        { "name": "VATAmount", "type": "currency" },
-        { "name": "Total", "type": "currency" },
-        { "name": "Status", "type": "select", "choices": ["Draft", "Issued", "Paid", "Cancelled", "Invalid"] },
-        { "name": "ValidationError", "type": "text" },
-        { "name": "Created", "type": "created" }
+        {
+          "name": "TaxInvoiceId",
+          "type": "text",
+          "primary": true
+        },
+        {
+          "name": "DocNumber",
+          "type": "int"
+        },
+        {
+          "name": "CustomerId",
+          "type": "text"
+        },
+        {
+          "name": "CustomerName",
+          "type": "text"
+        },
+        {
+          "name": "CustomerBusinessNumber",
+          "type": "text",
+          "note": "Required - WF1 rejects a tax invoice without it."
+        },
+        {
+          "name": "IssueDate",
+          "type": "date"
+        },
+        {
+          "name": "LineItems",
+          "type": "longtext"
+        },
+        {
+          "name": "Subtotal",
+          "type": "currency"
+        },
+        {
+          "name": "VATRate",
+          "type": "percent"
+        },
+        {
+          "name": "VATAmount",
+          "type": "currency"
+        },
+        {
+          "name": "Total",
+          "type": "currency"
+        },
+        {
+          "name": "Status",
+          "type": "select",
+          "choices": [
+            "Draft",
+            "Issued",
+            "Paid",
+            "Cancelled",
+            "Invalid"
+          ]
+        },
+        {
+          "name": "ValidationError",
+          "type": "text"
+        },
+        {
+          "name": "PdfUrl",
+          "type": "url",
+          "note": "Google Drive link of the generated document. Written by WF8, shown in the app."
+        },
+        {
+          "name": "Created",
+          "type": "created"
+        }
       ]
     },
     {
       "name": "Receipts",
-      "usedBy": ["WF1 (trigger)", "WF8", "WF9"],
+      "usedBy": [
+        "WF1 (trigger)",
+        "WF8",
+        "WF9"
+      ],
       "fields": [
-        { "name": "ReceiptId", "type": "text", "primary": true },
-        { "name": "DocNumber", "type": "int" },
-        { "name": "CustomerId", "type": "text" },
-        { "name": "CustomerName", "type": "text" },
-        { "name": "IssueDate", "type": "date" },
-        { "name": "Amount", "type": "currency" },
-        { "name": "PaymentMethod", "type": "select", "choices": ["Cash", "CreditCard", "BankTransfer", "Check", "Bit"] },
-        { "name": "RelatedInvoice", "type": "text" },
-        { "name": "Status", "type": "select", "choices": ["Issued", "Cancelled", "Invalid"] },
-        { "name": "ValidationError", "type": "text" },
-        { "name": "Created", "type": "created" }
+        {
+          "name": "ReceiptId",
+          "type": "text",
+          "primary": true
+        },
+        {
+          "name": "DocNumber",
+          "type": "int"
+        },
+        {
+          "name": "CustomerId",
+          "type": "text"
+        },
+        {
+          "name": "CustomerName",
+          "type": "text"
+        },
+        {
+          "name": "IssueDate",
+          "type": "date"
+        },
+        {
+          "name": "Amount",
+          "type": "currency"
+        },
+        {
+          "name": "PaymentMethod",
+          "type": "select",
+          "choices": [
+            "Cash",
+            "CreditCard",
+            "BankTransfer",
+            "Check",
+            "Bit"
+          ]
+        },
+        {
+          "name": "RelatedInvoice",
+          "type": "text"
+        },
+        {
+          "name": "Status",
+          "type": "select",
+          "choices": [
+            "Issued",
+            "Cancelled",
+            "Invalid"
+          ]
+        },
+        {
+          "name": "ValidationError",
+          "type": "text"
+        },
+        {
+          "name": "PdfUrl",
+          "type": "url",
+          "note": "Google Drive link of the generated document. Written by WF8, shown in the app."
+        },
+        {
+          "name": "Created",
+          "type": "created"
+        }
       ]
     },
     {
       "name": "Tasks",
-      "usedBy": ["WF9"],
+      "usedBy": [
+        "WF9"
+      ],
       "fields": [
-        { "name": "TaskId", "type": "text", "primary": true },
-        { "name": "Title", "type": "text" },
-        { "name": "Description", "type": "longtext" },
-        { "name": "ProjectId", "type": "text" },
-        { "name": "AssignedTo", "type": "text" },
-        { "name": "DueDate", "type": "date" },
-        { "name": "Priority", "type": "select", "choices": ["Low", "Medium", "High", "Urgent"] },
-        { "name": "Status", "type": "select", "choices": ["Todo", "InProgress", "Done", "Blocked"] },
-        { "name": "Created", "type": "created" }
+        {
+          "name": "TaskId",
+          "type": "text",
+          "primary": true
+        },
+        {
+          "name": "Title",
+          "type": "text"
+        },
+        {
+          "name": "Description",
+          "type": "longtext"
+        },
+        {
+          "name": "ProjectId",
+          "type": "text"
+        },
+        {
+          "name": "AssignedTo",
+          "type": "text"
+        },
+        {
+          "name": "DueDate",
+          "type": "date"
+        },
+        {
+          "name": "Priority",
+          "type": "select",
+          "choices": [
+            "Low",
+            "Medium",
+            "High",
+            "Urgent"
+          ]
+        },
+        {
+          "name": "Status",
+          "type": "select",
+          "choices": [
+            "Todo",
+            "InProgress",
+            "Done",
+            "Blocked"
+          ]
+        },
+        {
+          "name": "Created",
+          "type": "created"
+        }
       ]
     },
     {
       "name": "Files",
-      "usedBy": ["WF1 (writes Pending)", "WF8 (reads Pending, writes Done)"],
+      "usedBy": [
+        "WF1 (writes Pending)",
+        "WF8 (reads Pending, writes Done)"
+      ],
       "fields": [
-        { "name": "FileId", "type": "text", "primary": true },
-        { "name": "DocType", "type": "select", "choices": ["Invoice", "TaxInvoice", "Receipt", "PriceQuote", "Report"] },
-        { "name": "SourceRecordId", "type": "text" },
-        { "name": "Status", "type": "select", "choices": ["Pending", "Processing", "Done", "Failed"] },
-        { "name": "DriveLink", "type": "url" },
-        { "name": "DriveFileId", "type": "text" },
-        { "name": "Year", "type": "text" },
-        { "name": "Month", "type": "text" },
-        { "name": "ErrorMessage", "type": "text" },
-        { "name": "Created", "type": "created" }
+        {
+          "name": "FileId",
+          "type": "text",
+          "primary": true
+        },
+        {
+          "name": "DocType",
+          "type": "select",
+          "choices": [
+            "Invoice",
+            "TaxInvoice",
+            "Receipt",
+            "PriceQuote",
+            "Report"
+          ]
+        },
+        {
+          "name": "SourceRecordId",
+          "type": "text"
+        },
+        {
+          "name": "Status",
+          "type": "select",
+          "choices": [
+            "Pending",
+            "Processing",
+            "Done",
+            "Failed"
+          ]
+        },
+        {
+          "name": "DriveLink",
+          "type": "url"
+        },
+        {
+          "name": "DriveFileId",
+          "type": "text"
+        },
+        {
+          "name": "Year",
+          "type": "text"
+        },
+        {
+          "name": "Month",
+          "type": "text"
+        },
+        {
+          "name": "ErrorMessage",
+          "type": "text"
+        },
+        {
+          "name": "Created",
+          "type": "created"
+        }
       ]
     }
   ],
